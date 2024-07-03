@@ -1,22 +1,23 @@
 import random
 from abc import ABC, abstractmethod
 from math import floor
+from typing import List
 
 from PIL import Image
 
 
-class SingleSourceImageBuilder(ABC):
+class SingleSourceImageGenerator(ABC):
 
     def __init__(self, source: str, pieces_count: int, **kwargs):
         self.source = source
         self.pieces_count = pieces_count
-        self.slices = None
+        self.slices: List = None
         self.image_width = None
         self.image_height = None
         self._build_called = False
         self.args = kwargs
 
-    def build(self) -> "SingleSourceImageBuilder":
+    def build(self) -> "SingleSourceImageGenerator":
         image = Image.open(self.source)
         image_width, image_height = image.size
         self.image_width = image_width
@@ -49,14 +50,19 @@ class SingleSourceImageBuilder(ABC):
             new_image.paste(self.slices[p], self.get_piece_position(p))
 
         new_image.save(output_path)
-        new_image.show("Test")  # Todo: remove
+        # new_image.show("Test")  # Todo: remove
         new_image.close()
 
     def randomize(self):
         random.shuffle(self.slices)
+        return self
+
+    def shift_slices(self):
+        self.slices = self.slices[-1:] + self.slices[:-1]
+        return self
 
 
-class HorizontalSingleSourceImageBuilder(SingleSourceImageBuilder):
+class HorizontalSingleSourceImageGenerator(SingleSourceImageGenerator):
 
     def get_piece_position(self, piece_index):
         piece_height: int = self.get_piece_height()
@@ -68,7 +74,7 @@ class HorizontalSingleSourceImageBuilder(SingleSourceImageBuilder):
         return floor(self.image_height / self.pieces_count)
 
 
-class VerticalSingleSourceImageBuilder(SingleSourceImageBuilder):
+class VerticalSingleSourceImageGenerator(SingleSourceImageGenerator):
 
     def get_piece_position(self, piece_index):
         piece_width: int = self.get_piece_width()

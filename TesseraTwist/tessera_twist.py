@@ -1,12 +1,19 @@
-from image.image_builder import HorizontalSingleSourceImageBuilder, VerticalSingleSourceImageBuilder
+from image.image_generator import VerticalSingleSourceImageGenerator
+from image.sequence_generator import SequenceGenerator
+
 
 if __name__ == "__main__":
-    builder = VerticalSingleSourceImageBuilder(
+    factory = lambda: VerticalSingleSourceImageGenerator(
         source="sample2.jpg",
         pieces_count=20,
-    ).build()
+    )
 
-    builder.generate_output("output.jpg")
-    builder.randomize()
-    builder.generate_output("output2.jpg")
+    sequence_generator = SequenceGenerator(
+        sequence_length=24,
+        image_generator_factory=factory,
+        workers=4,
+        output_directory="./output/",
+        output_prefix="output"
+    )
 
+    sequence_generator.generate()
