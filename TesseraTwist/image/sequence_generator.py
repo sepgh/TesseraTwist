@@ -1,7 +1,7 @@
 from os import path
 from typing import Callable
 from pathlib import Path
-
+import random
 from image.image_generator import SingleSourceImageGenerator
 import multiprocessing
 
@@ -14,20 +14,27 @@ class SequenceGenerator:
             image_generator_factory: Callable,
             workers: int,
             output_directory: str,
-            output_prefix: str
+            output_prefix: str,
+            extension: str
     ):
         self.sequence_length = sequence_length
         self.output_prefix = output_prefix
         self.output_directory = output_directory
         self.image_generator_factory = image_generator_factory
         self.workers = workers
+        self.extension = extension
 
     def run_worker(self, worker_id: int, count: int):
         image_generator: SingleSourceImageGenerator = self.image_generator_factory()
         image_generator.build()
         for i in range(1, count + 1):
-            image_generator.generate_output(path.join(self.output_directory, f'{self.output_prefix}.{worker_id}.{i}.png'))
-            image_generator.shift_slices()
+            image_generator.generate_output(
+                path.join(self.output_directory, f'{self.output_prefix}.{worker_id}.{i}.{self.extension}')
+            )
+            if bool(random.getrandbits(1)):
+                image_generator.shift_slices()
+            else:
+                image_generator.randomize()
 
     def generate(self):
         Path(self.output_directory).mkdir(parents=True, exist_ok=True)
