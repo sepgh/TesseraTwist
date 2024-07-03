@@ -39,7 +39,7 @@ class SequenceGenerator:
         for i in range(0, self.workers):
             count_for_worker = self.sequence_length // self.workers
             if i == self.workers - 1:
-                count_for_worker -= remainder
+                count_for_worker += remainder
 
             child_process = multiprocessing.Process(target=self.run_worker, args=(i, count_for_worker))
             child_process.start()
