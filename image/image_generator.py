@@ -50,7 +50,6 @@ class SingleSourceImageGenerator(ABC):
             new_image.paste(self.slices[p], self.get_piece_position(p))
 
         new_image.save(output_path)
-        # new_image.show("Test")  # Todo: remove
         new_image.close()
 
     def randomize(self):
@@ -84,3 +83,33 @@ class VerticalSingleSourceImageGenerator(SingleSourceImageGenerator):
 
     def get_piece_width(self):
         return floor(self.image_width / self.pieces_count)
+
+
+class TilingSingleSourceImageGenerator(SingleSourceImageGenerator):
+
+    def __init__(self, source: str, pieces_count: int, **kwargs):
+        self.initial_pieces_count = pieces_count
+        self.width_slicing_index = 0
+        pieces_count = pieces_count * pieces_count
+        super().__init__(source, pieces_count, **kwargs)
+
+    def get_piece_position(self, p):
+        piece_width: int = self.get_piece_width()
+        piece_height: int = self.get_piece_height()
+
+        h_i = floor(p / self.initial_pieces_count)
+        w_i = p % self.initial_pieces_count
+
+        height_start = h_i * piece_height
+        height_end = (h_i + 1) * piece_height
+
+        width_start = w_i * piece_width
+        width_end = (w_i + 1) * piece_width
+
+        return width_start, height_start, width_end, height_end
+
+    def get_piece_width(self):
+        return floor(self.image_width / self.initial_pieces_count)
+
+    def get_piece_height(self) -> int:
+        return floor(self.image_height / self.initial_pieces_count)

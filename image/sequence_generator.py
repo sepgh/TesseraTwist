@@ -15,7 +15,8 @@ class SequenceGenerator:
             workers: int,
             output_directory: str,
             output_prefix: str,
-            extension: str
+            extension: str,
+            smoothing: bool = False
     ):
         self.sequence_length = sequence_length
         self.output_prefix = output_prefix
@@ -23,6 +24,7 @@ class SequenceGenerator:
         self.image_generator_factory = image_generator_factory
         self.workers = workers
         self.extension = extension
+        self.smoothing = smoothing
 
     def run_worker(self, worker_id: int, count: int):
         image_generator: SingleSourceImageGenerator = self.image_generator_factory()
@@ -31,10 +33,14 @@ class SequenceGenerator:
             image_generator.generate_output(
                 path.join(self.output_directory, f'{self.output_prefix}.{worker_id}.{i}.{self.extension}')
             )
-            if bool(random.getrandbits(1)):
+
+            if self.smoothing:
                 image_generator.shift_slices()
             else:
-                image_generator.randomize()
+                if bool(random.getrandbits(1)):
+                    image_generator.shift_slices()
+                else:
+                    image_generator.randomize()
 
     def generate(self):
         Path(self.output_directory).mkdir(parents=True, exist_ok=True)
@@ -54,6 +60,3 @@ class SequenceGenerator:
 
         for process in processes:
             process.join()
-
-
-

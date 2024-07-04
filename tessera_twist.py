@@ -1,7 +1,8 @@
 import argparse
 
 from image.helper import get_image_info
-from image.image_generator import VerticalSingleSourceImageGenerator, HorizontalSingleSourceImageGenerator
+from image.image_generator import VerticalSingleSourceImageGenerator, HorizontalSingleSourceImageGenerator, \
+    TilingSingleSourceImageGenerator
 from image.sequence_generator import SequenceGenerator
 from video.timelapse_generator import TimelapseGenerator
 
@@ -18,10 +19,12 @@ if __name__ == "__main__":
     parser.add_argument(
         '-g',
         '--generator',
-        choices=['SV', 'SH'],
+        choices=['SV', 'SH', 'ST'],
         required=True,
         help='Image generator type. '
-             '"SV" for "VerticalSingleSourceImageGenerator" or "SH" for "HorizontalSingleSourceImageGenerator"',
+             '"SV" for "VerticalSingleSourceImageGenerator",'
+             ' "SH" for "HorizontalSingleSourceImageGenerator",'
+             ' "ST" for "TilingSingleSourceImageGenerator"',
     )
     parser.add_argument(
         '-s',
@@ -35,6 +38,7 @@ if __name__ == "__main__":
     parser.add_argument('-fb', '--ffmpeg', help='Path to ffmpeg executable', type=str, default='ffmpeg', required=False)
     parser.add_argument('-crf', help="Value for crf flag passed to ffmpeg", type=int, default=17, required=False)
     parser.add_argument('-fps', help="Value for fps flag passed to ffmpeg", type=int, default=24, required=False)
+    parser.add_argument('-smoother', help="Smoothing by doing more shifts next to shuffles. This is incomplete.", type=int, choices=[1, 0], default=0, required=False)
     args = vars(parser.parse_args())
 
     if args['generator'] == 'SV':
@@ -42,10 +46,15 @@ if __name__ == "__main__":
             source=args["input"],
             pieces_count=args["pieces"],
         )
-    else:
+    elif args['generator'] == 'SH':
         factory = lambda: HorizontalSingleSourceImageGenerator(
             source=args["input"],
             pieces_count=args["pieces"],
+        )
+    elif args['generator'] == 'ST':
+        factory = lambda: TilingSingleSourceImageGenerator(
+            source=args["input"],
+            pieces_count=args["pieces"]
         )
 
     w, h, ext = get_image_info(args["input"])
@@ -59,7 +68,8 @@ if __name__ == "__main__":
             workers=args["workers"],
             output_directory=args["storage"],
             output_prefix=f"tessera_twist.s{s}",
-            extension=ext
+            extension=ext,
+            smoothing=bool(args["smoother"]),
         )
 
         sequence_generator.generate()
