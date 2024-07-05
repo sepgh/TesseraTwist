@@ -39,6 +39,7 @@ if __name__ == "__main__":
     parser.add_argument('-crf', help="Value for crf flag passed to ffmpeg", type=int, default=17, required=False)
     parser.add_argument('-fps', help="Value for fps flag passed to ffmpeg", type=int, default=24, required=False)
     parser.add_argument('-smoother', help="Smoothing by doing more shifts next to shuffles. This is incomplete.", type=int, choices=[1, 0], default=0, required=False)
+    parser.add_argument('-sc', '--script', help="Generate FFMpeg script only. No video generation.", type=int, choices=[1, 0], default=0, required=False)
     args = vars(parser.parse_args())
 
     if args['generator'] == 'SV':
@@ -74,7 +75,7 @@ if __name__ == "__main__":
 
         sequence_generator.generate()
 
-    TimelapseGenerator(
+    timelapse_generator = TimelapseGenerator(
         args["ffmpeg"],
         args["fps"],
         ext,
@@ -82,4 +83,9 @@ if __name__ == "__main__":
         input_directory=args["storage"],
         output_path=args["output"],
         width=w, height=h
-    ).generate()
+    )
+
+    if bool(int(args["script"])):
+        print(" ".join(timelapse_generator.get_args()))
+    else:
+        timelapse_generator.generate()

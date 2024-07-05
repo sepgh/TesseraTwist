@@ -31,7 +31,7 @@ class SequenceGenerator:
         image_generator.build()
         for i in range(1, count + 1):
             image_generator.generate_output(
-                path.join(self.output_directory, f'{self.output_prefix}.{worker_id}.{i}.{self.extension}')
+                path.join(self.output_directory, f'{self.output_prefix}.{worker_id}.{i}{self.extension}')
             )
 
             if self.smoothing:
